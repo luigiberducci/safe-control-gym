@@ -11,6 +11,8 @@ ALGO='ppo'
 # ALGO='sac'
 # ALGO='safe_explorer_ppo'
 
+OUTDIR='./unsafe_rl_temp_data/'
+
 if [ "$SYS" == 'cartpole' ]; then
     SYS_NAME=$SYS
 else
@@ -18,9 +20,11 @@ else
 fi
 
 # Removed the temporary data used to train the new unsafe model.
-rm -r -f ./unsafe_rl_temp_data/
+rm -r -f ${OUTDIR}
 
 if [ "$ALGO" == 'safe_explorer_ppo' ]; then
+    PRETRAIN_OUTDIR=${OUTDIR}/pretrain
+
     # Pretrain the unsafe controller/agent.
     python3 ../../safe_control_gym/experiments/train_rl_controller.py \
         --algo ${ALGO} \
@@ -28,16 +32,13 @@ if [ "$ALGO" == 'safe_explorer_ppo' ]; then
         --overrides \
             ./config_overrides/${SYS}/${ALGO}_${SYS}_pretrain.yaml \
             ./config_overrides/${SYS}/${SYS}_${TASK}.yaml \
-        --output_dir ./unsafe_rl_temp_data/ \
+        --output_dir ${PRETRAIN_OUTDIR} \
         --seed 2 \
         --kv_overrides \
             task_config.init_state=None
 
     # Move the newly trained unsafe model.
-    mv ./unsafe_rl_temp_data/model_latest.pt ./models/${ALGO}/${ALGO}_pretrain_${SYS}_${TASK}.pt
-
-    # Removed the temporary data used to train the new unsafe model.
-    rm -r -f ./unsafe_rl_temp_data/
+    cp ${PRETRAIN_OUTDIR}/model_latest.pt ./models/${ALGO}/${ALGO}_pretrain_${SYS}_${TASK}.pt
 fi
 
 # Train the unsafe controller/agent.
@@ -47,7 +48,7 @@ python3 ../../safe_control_gym/experiments/train_rl_controller.py \
     --overrides \
         ./config_overrides/${SYS}/${ALGO}_${SYS}.yaml \
         ./config_overrides/${SYS}/${SYS}_${TASK}.yaml \
-    --output_dir ./unsafe_rl_temp_data/ \
+    --output_dir ${OUTDIR} \
     --seed 2 \
     --kv_overrides \
         task_config.init_state=None \
@@ -55,7 +56,4 @@ python3 ../../safe_control_gym/experiments/train_rl_controller.py \
         algo_config.pretrained=./models/${ALGO}/${ALGO}_pretrain_${SYS}_${TASK}.pt
 
 # Move the newly trained unsafe model.
-mv ./unsafe_rl_temp_data/model_best.pt ./models/${ALGO}/${ALGO}_model_${SYS}_${TASK}.pt
-
-# Removed the temporary data used to train the new unsafe model.
-rm -r -f ./unsafe_rl_temp_data/
+cp ${OUTDIR}/model_best.pt ./models/${ALGO}/${ALGO}_model_${SYS}_${TASK}.pt
