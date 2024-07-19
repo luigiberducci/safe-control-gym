@@ -2,14 +2,14 @@
 
 SYS='cartpole'
 # SYS='quadrotor_2D'
-# SYS='quadrotor_3D'
+SYS='quadrotor_3D'
 
 TASK='stab'
 # TASK='track'
 
-ALGO='ppo'
+# ALGO='ppo'
 # ALGO='sac'
-# ALGO='safe_explorer_ppo'
+ALGO='safe_explorer_ppo'
 
 OUTDIR='./unsafe_rl_temp_data/'
 
