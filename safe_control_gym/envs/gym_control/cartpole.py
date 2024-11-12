@@ -250,7 +250,7 @@ class CartPole(BenchmarkEnv):
         obs, rew, done, info = super().after_step(obs, rew, done, info)
         return obs, rew, done, info
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options: dict = None):
         '''(Re-)initializes the environment to start an episode.
 
         Mandatory to call at least once after __init__().
@@ -311,6 +311,10 @@ class CartPole(BenchmarkEnv):
         init_values = {'init_x': self.INIT_X, 'init_x_dot': self.INIT_X_DOT, 'init_theta': self.INIT_THETA, 'init_theta_dot': self.INIT_THETA_DOT}
         if self.RANDOMIZED_INIT:
             init_values = self._randomize_values_by_info(init_values, self.INIT_STATE_RAND_INFO)
+        # Explicitly set initial state.
+        if options is not None and "init_state" in options:
+            for i, state_var in enumerate(init_values):
+                init_values[state_var] = options["init_state"][i]
         OVERRIDDEN_INIT_X = init_values['init_x']
         OVERRIDDEN_INIT_X_DOT = init_values['init_x_dot']
         OVERRIDDEN_INIT_THETA = init_values['init_theta']
